@@ -1,2 +1,2 @@
-# would_you_survive_titanic_project
-Would you survive the Titanic? Full ML model using Kaggle's Titanic dataset, deployed as a Shiny app
+# Would You Have Survived the Titanic?
+Would you have survived the Titanic? This app uses the famous Kaggle Titanic data set to train a model that predicts the chance of survival given certain features about a person.
