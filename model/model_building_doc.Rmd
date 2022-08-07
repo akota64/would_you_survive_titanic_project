@@ -1,0 +1,153 @@
+---
+title: "Building a Model for the Titanic Data Set"
+author: "Akhil Kota"
+date: "2022-08-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(caret)
+library(kernlab)
+```
+
+## Load Data
+
+Loading downloaded data, the training set from [Kaggle Titanic Dataset](https://www.kaggle.com/competitions/titanic/data).
+
+```{r load_data}
+dat <- read_csv("../data/train.csv")
+```
+
+```{r str_data}
+summary(dat)
+str(dat)
+apply(dat, 2, function(x){sum(is.na(x))/length(x)})
+```
+We see lots of NA's in Cabin: 77% of the data, in fact. We will just get rid of this column for our purposes. The NA proportion of Age and Embarked seem small enough to deal with.
+
+## Pre-Processing
+We will first remove some columns and transform some other columns. Embarked is split into dummy variables and manually imputed (since there are only 2, all dummy vars are set to 0 for these two rows).
+
+```{r pre_proc}
+train <- dat %>%
+    select(-PassengerId, -Name, -Cabin, -Ticket) %>%
+    mutate(
+        Survived = factor(Survived, labels=c("No","Yes")),
+        Embarked = factor(Embarked),
+        Sex = factor(Sex),
+        Pclass = factor(Pclass)
+    )
+dmy <- dummyVars(" ~ Embarked", train)
+dv <- data.frame(predict(dmy, train))
+dv[is.na(dv)]<-0
+train <- train %>% 
+    select(-Embarked) %>%
+    mutate(
+        Cherbourg = as.factor(dv$Embarked.C), 
+        Queenstown = as.factor(dv$Embarked.Q),
+        Southampton = as.factor(dv$Embarked.S)
+    )
+str(train)
+```
+
+Although Name, Cabin, and Ticket may contain some nice predictive data, we get rid of these columns as they cannot be integrated into the app very well. Furthermore, Cabin has quite a lot of NA's.  
+  
+Next comes KNN imputation:
+```{r knn}
+set.seed(64)
+train <- as.data.frame(train)
+knn <- preProcess(train[,-1], method = "knnImpute")
+train[,-1] <- predict(knn, train[,-1])
+str(train)
+```
+
+We now move to model selection using cross-validation.
+
+
+## Model Selection
+Since we are trying to predict a binary variable (binary classification), we will test the following models: logistic regression, naive Bayes, decision tree (rpart), random forest, gradient boost machine (GBM) and polynomial SVM.
+
+```{r model_selection, message=FALSE}
+tc <- trainControl(method="cv", number=10, savePredictions = TRUE)
+
+set.seed(64)
+mod_log <- train(Survived~., data=train, method="glm", family = "binomial", trControl=tc)
+acc_log <- sum(mod_log$pred$pred==mod_log$pred$obs)/nrow(mod_log$pred)
+
+set.seed(64)
+mod_nb <- train(Survived~., data=train, method="nb", trControl=tc)
+acc_nb <- sum(mod_nb$pred$pred==mod_nb$pred$obs)/nrow(mod_nb$pred)
+
+set.seed(64)
+mod_tree <- train(Survived~., data=train, method="rpart", trControl=tc)
+acc_tree <- sum(mod_tree$pred$pred==mod_tree$pred$obs)/nrow(mod_tree$pred)
+
+set.seed(64)
+mod_rf <- train(Survived~., data=train, method="rf", trControl=tc)
+acc_rf <- sum(mod_rf$pred$pred==mod_rf$pred$obs)/nrow(mod_rf$pred)
+
+set.seed(64)
+mod_gbm <- train(Survived~., data=train, method="gbm", trControl=tc)
+acc_gbm <- sum(mod_gbm$pred$pred==mod_gbm$pred$obs)/nrow(mod_gbm$pred)
+
+set.seed(64)
+mod_svm <- train(Survived~., data=train, method="svmPoly", trControl=tc)
+acc_svm <- sum(mod_svm$pred$pred==mod_svm$pred$obs)/nrow(mod_svm$pred)
+```
+
+Now, we may choose the algorithm with the highest accuracy, as displayed in the table below:
+```{r accs}
+data.frame(
+    model = c("Logistic", "Naive Bayes", "Decision Tree", "Random Forest", "GBM", "Poly SVM"),
+    accuracy = c(acc_log, acc_nb, acc_tree, acc_rf, acc_gbm, acc_svm)
+)
+```
+
+Although all the accuracies seem pretty low, they seem to be good enough for our purposes. We will go ahead and use this Random Forest model for our final implementation. This final implementation is available in model.R, and the final model to be used is saved as model.Rds in the app directory.
+
+```{r random_forest}
+print(mod_rf)
+```
+
+
+We will now test on the test set to estimate the out-of-sample error.
+```{r test_pred}
+## Load data
+dat_test <- read_csv("../data/test.csv")
+pid <- dat_test$PassengerId
+
+## Remove undesired columns and transform categorical columns to factor
+test <- dat_test %>%
+    select(-PassengerId, -Name, -Cabin, -Ticket) %>%
+    mutate(
+        Embarked = factor(Embarked),
+        Sex = factor(Sex),
+        Pclass = factor(Pclass)
+    )
+
+## Add dummy vars for Embarked location
+dmy_test <- dummyVars(" ~ Embarked", test)
+dv_test <- data.frame(predict(dmy_test, test))
+dv_test[is.na(dv_test)]<-0
+test <- test %>% 
+    select(-Embarked) %>%
+    mutate(
+        Cherbourg = as.factor(dv_test$Embarked.C), 
+        Queenstown = as.factor(dv_test$Embarked.Q),
+        Southampton = as.factor(dv_test$Embarked.S)
+    )
+
+## knnImpute to remove NA's
+test <- as.data.frame(test)
+test <- predict(knn, test)
+
+## Use trained model to predict on test set
+pred <- as.numeric(predict(mod_rf, test))-1
+
+final <- data.frame(PassengerId=pid, Survived=pred)
+write_csv(final, "test_preds.csv")
+```
+
+Upon submitting the final test_preds.csv to Kaggle, we find that the accuracy on the testing set is 77.5%, which is decent. This is our estimate for this model's out-of-sample accuracy.
