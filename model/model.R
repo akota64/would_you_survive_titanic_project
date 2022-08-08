@@ -39,10 +39,8 @@ train[,-1] <- predict(knn, train[,-1])
 set.seed(64)
 model <- train(Survived~., data=train, method="rf")
 
-## Save two copies of the model. One in app folder and one in model folder
-## Also saves knnImpute pre-processing model for the app
-## The app will feed the necessary data to the model in exactly the right format
-saveRDS(model, "app/final_model.rds")
+## Saves final model and final knn pre-processing in both the app and model directories
 saveRDS(model, "model/final_model.rds")
-saveRDS(knn, "app/final_knn.rds")
+saveRDS(model, "app/final_model.rds")
 saveRDS(knn, "model/final_knn.rds")
+saveRDS(knn, "app/final_knn.rds")

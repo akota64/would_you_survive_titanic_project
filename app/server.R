@@ -10,6 +10,8 @@
 library(shiny)
 library(tidyverse)
 library(cowplot)
+library(caret)
+library(randomForest)
 
 # Reading training data
 # Assuming wd is this app directory

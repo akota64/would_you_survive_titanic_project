@@ -18,7 +18,8 @@ shinyUI(fluidPage(
     # Sidebar with a slider input for number of bins
     sidebarLayout(
         sidebarPanel(
-            h2("Personal Information"),
+            em("Input your data below to buy your ticket for a trans-Atlantic trip on the Titanic!"),
+            h3("Personal Information"),
             selectInput("sex",
                         "Sex:",
                         choices = c("Female" = 1, "Male" = 2)
@@ -41,7 +42,7 @@ shinyUI(fluidPage(
                         value = 2
             ),
             hr(),
-            h2("Trip Information"),
+            h3("Trip Information"),
             selectInput("pclass",
                         "Choose a Ticket Class",
                         choices = c("First Class (£84)" = 1, "Second Class (£21)" = 2, "Third Class (£14)" = 3)
@@ -55,9 +56,8 @@ shinyUI(fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
             tabsetPanel(
-                tabPanel("Prediction Pane",
+                tabPanel("Prediction",
                     p(),
-                    em("Instructions: Enter your (or some made-up) information in the sidebar and find out if you would have survived the Titanic!"),
                     h1(textOutput("center_text"), align = "center"),
                     h3(textOutput("sub_text"), align = "center"),
                     
@@ -68,7 +68,22 @@ shinyUI(fluidPage(
                 ),
                 tabPanel("Documentation",
                     p(),
-                    p("Coming Soon...")
+                    h3("Overview"),
+                    p("Hello and welcome to the 'Would You Have Survived the Titanic?' application. This application is meant to take some information about you (real or made-up), and tell you if you would've survived the Titanic! The application is backed by a random forest model built using training data from the famous Kaggle Titanic dataset. The inputs used in this application follow from the features available in that dataset, and are described below in the Inputs section. As each input is entered, the final outcome is re-calculated and displayed as either 'Congrats!' if you likely (>50% chance) would have survived, or 'Sorry!' if you likely would not have survived. Hit the 'Prediction' tab and enter some inputs to try it out yourself!"),
+                    h3("Inputs"),
+                    p("To calculate whether you would've survived or not, the following inputs must be entered in the sidebar to the left:"),
+                    tags$ul(
+                        tags$li("Sex"),
+                        tags$li("Age"),
+                        tags$li("Number of Siblings/Spouses (On Board): This is the total number of your siblings and your spouses (combined) that will join you on board the Titanic."),
+                        tags$li("Number of Parents/Children (On Board): This is the total number of your parents and your children (combined) that will join you on board the Titanic."),
+                        tags$li("Ticket Class: The class of ticket you have purchased, which vary by price. The higher class tickets cost more, but typically buy you a better room and service."),
+                        tags$li("Where Will You Embark From?: A choice of where you will board the Titanic, with the choices being: Cherbourg (France), Queenstown (Ireland), and Southampton (England).")
+                    ),
+                    h3("Prediction"),
+                    p("The prediction is either displayed as 'Congrats!' if you have a >=50% chance of survival, or 'Sorry!' if you have a <50% chance of survival."),
+                    h3("Dynamic Plots"),
+                    p("The plots below the prediction itself in the 'Prediction' tab show a distributions of survivorship (percent of people in the relevant category who survived) against each of the inputs entered, with the exception of the Age plot. The Age plot shows the age distribution of those who survived and those who did not. These data are from the real sample data used to train the model. As you select your inputs, that input's respective category will be highlighted in blue on the relevant plot. For example, if you were to select 'Male' for the Sex input, the bar showing the survivorship of males is highlighted in the Survivorship vs. Sex plot. In this way, you are able to see where you would have stood in the sample data if you were on the Titanic, and also take a glimpse into the prediction itself. You can try maximizing your chances of survival by choosing categories with higher displayed survivorship!")
                 )
             )
         )

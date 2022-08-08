@@ -1,0 +1,13 @@
+name: titanic-app
+title: titanic-app
+username:
+account: akota64
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6754532
+bundleId: 6179890
+url: https://akota64.shinyapps.io/titanic-app/
+when: 1659971081.74075
+lastSyncTime: 1659971081.74076
+asMultiple: FALSE
+asStatic: FALSE
