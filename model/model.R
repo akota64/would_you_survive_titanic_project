@@ -40,7 +40,9 @@ set.seed(64)
 model <- train(Survived~., data=train, method="rf")
 
 ## Save two copies of the model. One in app folder and one in model folder
-## Note that we will not need to KNN impute in the app, since it will be impossible to do so
+## Also saves knnImpute pre-processing model for the app
 ## The app will feed the necessary data to the model in exactly the right format
 saveRDS(model, "app/final_model.rds")
 saveRDS(model, "model/final_model.rds")
+saveRDS(knn, "app/final_knn.rds")
+saveRDS(knn, "model/final_knn.rds")
