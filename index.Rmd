@@ -65,6 +65,7 @@ So the predictive model suggests that an individual with these inputs would surv
 3. You can play around with it and have some fun!  
   
 Try it out now by clicking [here](https://akota64.shinyapps.io/titanic-app/)!
+Source code available [here](https://github.com/akota64/would_you_survive_titanic_project).
 
 <center>
 <img src="images/titanic_crowd.jpeg" alt="image of crowd awaiting Titanic in New York City" height="250"/>
