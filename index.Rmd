@@ -1,0 +1,12 @@
+---
+title: "Would You Have Survived the Titanic?"
+author: "Akhil Kota"
+date: "August 8, 2022"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Hello
