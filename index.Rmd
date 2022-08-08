@@ -7,6 +7,9 @@ output: slidy_presentation
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(caret)
+library(randomForest)
 ```
 
 ## Overview
@@ -25,13 +28,43 @@ Through this app, you can buy a ticket for the Titanic's voyage, entering some p
 3. As inputs are entered in the sidebar of the app, the app predicts whether or not a person with the inputted data would have survived using the loaded random forest model, and this prediction is outputted to the end user.
 4. Plots of the training data (survivorship vs. input variables) are shown to the end user as well, with inputted categories highlighted in each plot to show where the inputted data stands in the training data.
 
-## Results
-The code below shows the loading and operation of the KNN algorithm and random forest model.
+## Back-End Code Snippet
+The code below shows the loading and operation of the KNN algorithm and random forest model. Operation on a pre-loaded input array is shown.
+```{r code_snippet}
+sexf <- factor(c("female","male"), levels=c("female","male"))
+pclassf <- as.factor(c(1,2,3))
+embarkedf <- factor(c(0,1), levels=c(0,1))
 
-## Why Use It?
-1. Travel back to the past and visualize how you'd fit into the Titanic data set.
-2. Investigate the effects of different inputs on whether or not you'd survive.
-3. Just for fun!
+inputs <- data.frame(
+            Sex = sexf[1],
+            Age = 25,
+            Pclass = pclassf[2],
+            SibSp = 2,
+            Parch = 2,
+            Fare = 30,
+            Cherbourg = embarkedf[1],
+            Queenstown = embarkedf[2],
+            Southampton = embarkedf[1]
+        )
+```
+
+```{r display_snippet, echo=TRUE}
+inputs # Input array to be used in the model
+
+knn <- readRDS("model/final_knn.rds") # KNN imputation pre-processing object
+model <- readRDS("model/final_model.rds") # Predictive random forest model
+
+proc_inputs <- predict(knn, inputs) # Carry out KNN imputation
+as.character(predict(model, proc_inputs)) # Predict survivorship from the processed
+```
+So the predictive model suggests that an individual with these inputs would survive!
+
+## Why Use This App?
+1. You can travel back to the past via simulation and visualize how you'd fit into the general masses of the Titanic.
+2. You can investigate the effects of different inputs on whether or not you'd survive.
+3. You can play around with it and have some fun!  
+  
+Try it out now by clicking [here](https://akota64.shinyapps.io/titanic-app/)!
 
 <center>
 <img src="images/titanic_crowd.jpeg" alt="image of crowd awaiting Titanic in New York City" height="250"/>
